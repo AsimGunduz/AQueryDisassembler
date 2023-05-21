@@ -40,7 +40,7 @@ The `SQLQueryParser` class is the main class in the library.
   - Returns:
     - A list of field names.
 
- ##Example
+ ## Example
  
  ```csharp
  using AQueryDisassembler;
