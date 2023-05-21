@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
+﻿using System.Data;
 using System.Data.Common;
-using System.Data.SqlClient;
-using System.IO;
-using System.Linq;
 using Microsoft.SqlServer.TransactSql.ScriptDom;
 
 namespace AQueryDisassembler
@@ -33,8 +28,7 @@ namespace AQueryDisassembler
         public List<string> ExtractFieldNames(string sqlQuery)
         {
             var parser = new TSql150Parser(false);
-            IList<ParseError> parseErrors;
-            var fragment = parser.Parse(new StringReader(sqlQuery), out parseErrors);
+            var fragment = parser.Parse(new StringReader(sqlQuery), out IList<ParseError> _);
 
             var visitor = new FieldNameVisitor();
             fragment.Accept(visitor);
@@ -50,8 +44,7 @@ namespace AQueryDisassembler
         public List<string> ExtractTableNames(string sqlQuery)
         {
             var parser = new TSql150Parser(false);
-            IList<ParseError> parseErrors;
-            var fragment = parser.Parse(new StringReader(sqlQuery), out parseErrors);
+            var fragment = parser.Parse(new StringReader(sqlQuery), out IList<ParseError> _);
 
             var visitor = new TableNameVisitor();
             fragment.Accept(visitor);
@@ -83,23 +76,21 @@ namespace AQueryDisassembler
         /// </summary>
         /// <param name="tableNames">The table names.</param>
         /// <returns>A list of field names.</returns>
-        internal List<string> GetFieldNamesFromMetaData(params string[] tableNames)
+        private List<string> GetFieldNamesFromMetaData(params string[] tableNames)
         {
             var fieldNames = new List<string>();
 
-            using (var connection = OpenConnection())
+            using var connection = OpenConnection();
+            var schema = connection.GetSchema("Columns");
+
+            foreach (var tableName in tableNames)
             {
-                var schema = connection.GetSchema("Columns");
+                var tableFieldNames = schema.AsEnumerable()
+                    .Where(row => string.Equals(row["TABLE_NAME"].ToString(), tableName, StringComparison.OrdinalIgnoreCase))
+                    .Select(row => row["COLUMN_NAME"].ToString())
+                    .ToList();
 
-                foreach (var tableName in tableNames)
-                {
-                    var tableFieldNames = schema.AsEnumerable()
-                        .Where(row => string.Equals(row["TABLE_NAME"].ToString(), tableName, StringComparison.OrdinalIgnoreCase))
-                        .Select(row => row["COLUMN_NAME"].ToString())
-                        .ToList();
-
-                    fieldNames.AddRange(tableFieldNames);
-                }
+                fieldNames.AddRange(tableFieldNames); 
             }
 
             return fieldNames;
