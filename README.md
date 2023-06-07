@@ -1,6 +1,6 @@
 # AQueryDisassembler
 
-AQueryDisassembler helps you disassemble SQL queries to extract field names and table names. It provides the following public members:
+AQueryDisassembler helps you disassemble SQL queries to extract field names and table names. 
 
 ## Installation
 You can install the AQueryDisassembler package via NuGet. Use one of the following commands, depending on your preferred package manager:
